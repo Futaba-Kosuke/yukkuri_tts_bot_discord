@@ -1,5 +1,7 @@
 init:
 	poetry install -v
+	cp .env.template .env
+	git config --local core.hooksPath .githooks
 
 env:
 	poetry shell
