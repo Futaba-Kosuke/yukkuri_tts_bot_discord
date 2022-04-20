@@ -1,7 +1,8 @@
-from discord.channel import VoiceChannel
+from discord.errors import ClientException
 from discord.ext import commands
 
 from constants import (
+    BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
     COMMAND_PREFIX,
     SUMMON_FAILURE_MESSAGE,
@@ -11,7 +12,7 @@ from constants import (
 # ボットの定義
 bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 # ボイスチャンネルの保存先
-voiceChannel: VoiceChannel
+voiceChannel = None
 
 
 @bot.event
@@ -22,23 +23,33 @@ async def on_ready():
 @bot.command()
 async def connect(context):
     global voiceChannel
-    # 呼び出したユーザの参加しているボイスチャンネルを取得
-    target_voice_channel = context.author.voice
-    # 接続成功
-    if target_voice_channel is not None:
-        voiceChannel = await target_voice_channel.channel.connect()
-        await context.channel.send(SUMMON_SUCCESS_MESSAGE)
-    # 接続失敗
-    else:
-        await context.channel.send(SUMMON_FAILURE_MESSAGE)
+    try:
+        # 呼び出したユーザの参加しているボイスチャンネルを取得
+        target_voice_channel = context.author.voice
+        # 接続成功
+        if target_voice_channel is not None:
+            voiceChannel = await target_voice_channel.channel.connect()
+            await context.channel.send(SUMMON_SUCCESS_MESSAGE)
+        # 接続失敗
+        else:
+            await context.channel.send(SUMMON_FAILURE_MESSAGE)
+    except ClientException:
+        voiceChannel = None
     return
 
 
 @bot.command()
 async def disconnect(context):
     global voiceChannel
-    await context.channel.send(BYE_SUCCESS_MESSAGE)
-    await voiceChannel.disconnect()
+    try:
+        # 切断
+        if voiceChannel is not None:
+            await context.channel.send(BYE_SUCCESS_MESSAGE)
+            await voiceChannel.disconnect()
+        else:
+            await context.channel.send(BYE_FAILURE_MESSAGE)
+    finally:
+        voiceChannel = None
     return
 
 
