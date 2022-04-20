@@ -12,16 +12,15 @@
 # クローン
 git clone git@github.com:Futaba-Kosuke/fastapi_template.git
 
-# パッケージのインストール
-# pyproject.tomlに従って.venv/を生成
+# poetry install -v
+#	cp .env.template .env
+#	git config --local core.hooksPath .githooks
 make
 
-# GitHooksの設定
-# 自動でリンター／フォーマッターを動かせるようにする
-git config --local core.hooksPath .githooks
-
-# 仮想環境に入る
-make env
+# Results
+# .venv: 仮想環境
+# .env: 環境変数の書き込み用
+# .githooks: Gitコミット時の処理を定義
 ```
 
 ### 3. 開発時の補足
