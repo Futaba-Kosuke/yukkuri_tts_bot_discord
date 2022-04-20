@@ -1,3 +1,6 @@
+import asyncio
+
+import discord
 from discord.errors import ClientException
 from discord.ext import commands
 
@@ -55,8 +58,20 @@ async def disconnect(context):
 
 @bot.listen()
 async def on_message(message):
+    # ボットからのメッセージを無視
     if message.author.bot:
         return
+
+    # ファイル名用のサーバIDを取得
+    # server_id: str = message.guild.id
+
+    # 再生中の場合、待機
+    while voiceChannel.is_playing():
+        await asyncio.sleep(1)
+
+    voice_path: str = "./tmp/test.mp3"
+    voiceChannel.play(discord.FFmpegPCMAudio(voice_path))
+
     return
 
 
