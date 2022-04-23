@@ -1,9 +1,7 @@
 import asyncio
+from typing import Any, Optional
 
 import discord
-from discord.errors import ClientException
-from discord.ext import commands
-
 from constants import (
     BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
@@ -11,11 +9,16 @@ from constants import (
     SUMMON_FAILURE_MESSAGE,
     SUMMON_SUCCESS_MESSAGE,
 )
+from discord import VoiceChannel
+from discord.errors import ClientException
+from discord.ext import commands
 
 # ボットの定義
 bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 # ボイスチャンネルの保存先
-voiceChannel = None
+voiceChannel: Optional[VoiceChannel] = None
+sound_file_path: str = "./tmp/{}.raw"
+voiceGenerator: Any = None
 
 
 @bot.event
@@ -59,21 +62,31 @@ async def disconnect(context):
 @bot.listen()
 async def on_message(message):
     # ボットからのメッセージを無視
-    if message.author.bot:
+    if message.author.bot or voiceChannel is None:
         return
 
     # ファイル名用のサーバIDを取得
-    # server_id: str = message.guild.id
+    server_id: str = message.guild.id
 
     # 再生中の場合、待機
     while voiceChannel.is_playing():
         await asyncio.sleep(1)
 
-    voice_path: str = "./tmp/test.mp3"
-    voiceChannel.play(discord.FFmpegPCMAudio(voice_path))
+    voiceGenerator.generate(
+        destination_path=sound_file_path.format(server_id),
+        message=message.content,
+    )
+    voiceChannel.play(
+        discord.FFmpegPCMAudio(sound_file_path.format(server_id))
+    )
 
     return
 
 
-def run(token: str) -> None:
+def run(token: str, voiceGeneratorArg: Any, sound_file_path_arg: str) -> None:
+    global voiceGenerator
+    global sound_file_path
+    voiceGenerator = voiceGeneratorArg
+    sound_file_path = sound_file_path_arg
+
     bot.run(token)
