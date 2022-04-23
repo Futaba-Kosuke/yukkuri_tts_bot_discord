@@ -3,7 +3,7 @@ from typing import Final, Optional
 
 from dotenv import load_dotenv
 
-from pycord_client import run
+from discord_client.pycord import run
 
 load_dotenv()
 DISCORD_ACCESS_TOKEN: Final[Optional[str]] = os.getenv("DISCORD_ACCESS_TOKEN")
