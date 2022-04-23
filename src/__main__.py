@@ -3,8 +3,8 @@ from typing import Final, Optional
 
 from dotenv import load_dotenv
 
-from discord_client.pycord import run
-from voice_generator.aques_talk import AquesTalkGenerator as VoiceGenerator
+from pycord import run
+from aques_talk import AquesTalkGenerator as VoiceGenerator
 
 load_dotenv()
 DISCORD_ACCESS_TOKEN: Final[Optional[str]] = os.getenv("DISCORD_ACCESS_TOKEN")
