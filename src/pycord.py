@@ -30,6 +30,9 @@ async def on_ready():
 @bot.command()
 async def connect(context):
     global voiceChannel
+
+    # ファイル名用のサーバIDを取得
+    server_id: str = context.guild.id
     try:
         # 呼び出したユーザの参加しているボイスチャンネルを取得
         target_voice_channel = context.author.voice
@@ -37,6 +40,7 @@ async def connect(context):
         if target_voice_channel is not None:
             voiceChannel = await target_voice_channel.channel.connect()
             await context.channel.send(SUMMON_SUCCESS_MESSAGE)
+            play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
         # 接続失敗
         else:
             await context.channel.send(SUMMON_FAILURE_MESSAGE)
@@ -62,7 +66,7 @@ async def disconnect(context):
 
 @bot.listen()
 async def on_message(message):
-    # ボットからのメッセージを無視
+    # ボットからのメッセージを無視, ボイスチャンネルが未定義のとき無視
     if message.author.bot or voiceChannel is None:
         return
 
@@ -73,15 +77,23 @@ async def on_message(message):
     while voiceChannel.is_playing():
         await asyncio.sleep(1)
 
+    play_voice(message=message.content, server_id=server_id)
+
+    return
+
+
+def play_voice(message: str, server_id: str):
+    # ボイスチャンネルが未定義のとき無視
+    if voiceChannel is None:
+        return
+
     voiceGenerator.generate(
         destination_path=sound_file_path.format(server_id),
-        message=message.content,
+        message=message,
     )
     voiceChannel.play(
         discord.FFmpegPCMAudio(sound_file_path.format(server_id))
     )
-
-    return
 
 
 def run(token: str, voiceGeneratorArg: Any, sound_file_path_arg: str) -> None:
