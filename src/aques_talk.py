@@ -3,6 +3,10 @@ import subprocess
 from dataclasses import dataclass
 from typing import Final, Optional
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 AQUES_TALK_PATH: Final[Optional[str]] = os.getenv("AQUES_TALK_PATH")
 
 
