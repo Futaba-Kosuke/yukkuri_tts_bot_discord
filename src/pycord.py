@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import discord
 from discord import VoiceChannel
@@ -17,7 +17,7 @@ from constants import (
 # ボットの定義
 bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 # ボイスチャンネルの保存先
-voiceChannel: Optional[VoiceChannel] = None
+voiceChannels: Dict[str, Optional[VoiceChannel]] = {}
 sound_file_path: str = "./tmp/{}.raw"
 voiceGenerator: Any = None
 
@@ -29,52 +29,64 @@ async def on_ready():
 
 @bot.command()
 async def connect(context):
-    global voiceChannel
+    global voiceChannels
 
-    # ファイル名用のサーバIDを取得
+    # サーバIDを取得
     server_id: str = context.guild.id
+
     try:
         # 呼び出したユーザの参加しているボイスチャンネルを取得
         target_voice_channel = context.author.voice
         # 接続成功
         if target_voice_channel is not None:
-            voiceChannel = await target_voice_channel.channel.connect()
+            voiceChannels[
+                server_id
+            ] = await target_voice_channel.channel.connect()
             await context.channel.send(SUMMON_SUCCESS_MESSAGE)
             play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
         # 接続失敗
         else:
             await context.channel.send(SUMMON_FAILURE_MESSAGE)
     except ClientException:
-        voiceChannel = None
+        voiceChannels[server_id] = None
     return
 
 
 @bot.command()
 async def disconnect(context):
-    global voiceChannel
+    global voiceChannels
+
+    # サーバIDを取得
+    server_id: str = context.guild.id
+
     try:
         # 切断
-        if voiceChannel is not None:
+        if voiceChannels.get(server_id) is not None:
             await context.channel.send(BYE_SUCCESS_MESSAGE)
-            await voiceChannel.disconnect()
+            await voiceChannels.get(server_id).disconnect()
         else:
             await context.channel.send(BYE_FAILURE_MESSAGE)
     finally:
-        voiceChannel = None
+        voiceChannels[server_id] = None
     return
 
 
 @bot.listen()
 async def on_message(message):
-    # ボットからのメッセージを無視, ボイスチャンネルが未定義のとき無視
-    if message.author.bot or voiceChannel is None:
-        return
 
-    # ファイル名用のサーバIDを取得
+    # サーバIDを取得
     server_id: str = message.guild.id
 
+    # ボットからのメッセージ, ボイスチャンネルが未定義, コマンドのとき無視
+    if (
+        message.author.bot
+        or voiceChannels.get(server_id) is None
+        or message.content.startswith(COMMAND_PREFIX)
+    ):
+        return
+
     # 再生中の場合、待機
-    while voiceChannel.is_playing():
+    while voiceChannels.get(server_id).is_playing():
         await asyncio.sleep(1)
 
     play_voice(message=message.content, server_id=server_id)
@@ -84,6 +96,7 @@ async def on_message(message):
 
 def play_voice(message: str, server_id: str):
     # ボイスチャンネルが未定義のとき無視
+    voiceChannel = voiceChannels.get(server_id)
     if voiceChannel is None:
         return
 
