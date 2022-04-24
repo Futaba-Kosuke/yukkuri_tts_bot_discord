@@ -21,4 +21,5 @@ class AquesTalkGenerator:
         if re.match(URL_PATTERN, message):
             return "URL省略"
         message = message.replace("'", "")
+        message = message[:40]
         return message
