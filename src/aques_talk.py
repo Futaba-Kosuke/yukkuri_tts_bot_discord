@@ -11,5 +11,6 @@ class AquesTalkGenerator:
     def generate(self, destination_path: str, message: str):
         message_clean = message.replace("'", "")
         subprocess.run(
-            f"{AQUES_TALK_PATH} '{message_clean}' > {destination_path}"  # noqa
+            f"{AQUES_TALK_PATH} '{message_clean}' > {destination_path}",  # noqa
+            shell=True,
         )

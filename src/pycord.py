@@ -2,6 +2,10 @@ import asyncio
 from typing import Any, Optional
 
 import discord
+from discord import VoiceChannel
+from discord.errors import ClientException
+from discord.ext import commands
+
 from constants import (
     BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
@@ -9,9 +13,6 @@ from constants import (
     SUMMON_FAILURE_MESSAGE,
     SUMMON_SUCCESS_MESSAGE,
 )
-from discord import VoiceChannel
-from discord.errors import ClientException
-from discord.ext import commands
 
 # ボットの定義
 bot = commands.Bot(command_prefix=COMMAND_PREFIX)
