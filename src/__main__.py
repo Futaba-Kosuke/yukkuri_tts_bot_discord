@@ -8,11 +8,12 @@ from pycord import run
 
 load_dotenv()
 DISCORD_ACCESS_TOKEN: Final[Optional[str]] = os.getenv("DISCORD_ACCESS_TOKEN")
+AQUES_TALK_PATH: Final[Optional[str]] = os.getenv("AQUES_TALK_PATH")
 
 
 def main() -> None:
     if DISCORD_ACCESS_TOKEN is not None:
-        voiceGenerator = VoiceGenerator()
+        voiceGenerator = VoiceGenerator(aques_talk_path=AQUES_TALK_PATH)
         run(
             token=DISCORD_ACCESS_TOKEN,
             voiceGeneratorArg=voiceGenerator,
