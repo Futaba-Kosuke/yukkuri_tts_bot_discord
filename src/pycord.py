@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 
 import discord
 from discord import VoiceChannel
-from discord.errors import ClientException
 from discord.ext import commands
 
 from constants import (
@@ -34,21 +33,16 @@ async def connect(context):
     # サーバIDを取得
     server_id: str = context.guild.id
 
-    try:
-        # 呼び出したユーザの参加しているボイスチャンネルを取得
-        target_voice_channel = context.author.voice
-        # 接続成功
-        if target_voice_channel is not None:
-            voiceChannels[
-                server_id
-            ] = await target_voice_channel.channel.connect()
-            await context.channel.send(SUMMON_SUCCESS_MESSAGE)
-            play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
-        # 接続失敗
-        else:
-            await context.channel.send(SUMMON_FAILURE_MESSAGE)
-    except ClientException:
-        voiceChannels[server_id] = None
+    # 呼び出したユーザの参加しているボイスチャンネルを取得
+    target_voice_channel = context.author.voice
+    # 接続成功
+    if target_voice_channel is not None:
+        voiceChannels[server_id] = await target_voice_channel.channel.connect()
+        await context.channel.send(SUMMON_SUCCESS_MESSAGE)
+        play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
+    # 接続失敗
+    else:
+        await context.channel.send(SUMMON_FAILURE_MESSAGE)
     return
 
 
@@ -59,15 +53,13 @@ async def disconnect(context):
     # サーバIDを取得
     server_id: str = context.guild.id
 
-    try:
-        # 切断
-        if voiceChannels.get(server_id) is not None:
-            await context.channel.send(BYE_SUCCESS_MESSAGE)
-            await voiceChannels.get(server_id).disconnect()
-        else:
-            await context.channel.send(BYE_FAILURE_MESSAGE)
-    finally:
-        voiceChannels[server_id] = None
+    # 切断
+    if voiceChannels.get(server_id) is not None:
+        await context.channel.send(BYE_SUCCESS_MESSAGE)
+        await voiceChannels.get(server_id).disconnect()
+    else:
+        await context.channel.send(BYE_FAILURE_MESSAGE)
+
     return
 
 
