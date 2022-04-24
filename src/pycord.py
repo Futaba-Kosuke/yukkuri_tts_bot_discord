@@ -57,6 +57,7 @@ async def disconnect(context):
     if voiceChannels.get(server_id) is not None:
         await context.channel.send(BYE_SUCCESS_MESSAGE)
         await voiceChannels.get(server_id).disconnect()
+        voiceChannels[server_id] = None
     else:
         await context.channel.send(BYE_FAILURE_MESSAGE)
 
