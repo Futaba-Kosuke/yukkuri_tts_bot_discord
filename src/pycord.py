@@ -9,8 +9,10 @@ from constants import (
     BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
     COMMAND_PREFIX,
+    FAREWELL_MESSAGE,
     SUMMON_FAILURE_MESSAGE,
     SUMMON_SUCCESS_MESSAGE,
+    WELCOME_MESSAGE,
 )
 
 # ボットの定義
@@ -36,6 +38,8 @@ async def on_voice_state_update(member, before, after) -> None:
 
     # サーバIDを取得
     server_id = member.guild.id
+    # 入退室者の名前の取得
+    name = member.name
     # ボイスクライアント・テキストチャンネルを取得
     voiceClient = voiceClients.get(server_id)
     textChannel = textChannels.get(server_id)
@@ -50,6 +54,18 @@ async def on_voice_state_update(member, before, after) -> None:
         # ボット自身の入退室の場合
         if member.id == bot.user.id:
             return
+
+        # メンバーの入室時
+        if before.channel is None:
+            message = WELCOME_MESSAGE.format(name)
+            await textChannel.send(message)
+            play_voice(message=message, server_id=server_id)
+
+        # メンバーの退出時
+        if after.channel is None:
+            message = FAREWELL_MESSAGE.format(name)
+            await textChannel.send(message)
+            play_voice(message=message, server_id=server_id)
 
         # 誰も居なくなった時に自動で退出
         if len(voiceClient.channel.voice_states.keys()) == 1:
