@@ -70,6 +70,8 @@ async def on_voice_state_update(member, before, after) -> None:
         # 誰も居なくなった時に自動で退出
         if len(voiceClient.channel.voice_states.keys()) == 1:
             await voiceClient.disconnect()
+            voiceClients[server_id] = None
+            textChannels[server_id] = None
 
 
 @bot.command()
