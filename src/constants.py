@@ -6,3 +6,6 @@ SUMMON_SUCCESS_MESSAGE: Final[str] = "ゆっくりしていってね！"
 SUMMON_FAILURE_MESSAGE: Final[str] = "ボイスチャンネルに入ってから話しかけてね！"
 BYE_SUCCESS_MESSAGE: Final[str] = "また呼んでね！"
 BYE_FAILURE_MESSAGE: Final[str] = "ボイスチャンネルに入ってないよ！"
+
+WELCOME_MESSAGE: Final[str] = "{}さん、いらっしゃい。ゆっくりしていってね！"
+FAREWELL_MESSAGE: Final[str] = "{}さん、さようなら。また来てね！"
