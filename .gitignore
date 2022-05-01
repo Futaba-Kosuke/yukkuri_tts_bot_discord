@@ -13,5 +13,11 @@ __pycache__/
 .idea/
 .vscode/
 
+# enviroment variable
 .env
+
+# temporary files
 tmp/
+
+# database file
+database.db
