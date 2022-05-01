@@ -3,6 +3,7 @@ from typing import Final, Optional
 
 from dotenv import load_dotenv
 
+from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from aques_talk import AquesTalkGenerator as VoiceGenerator
 from constants import DB_NAME
 from pycord import run
@@ -15,8 +16,10 @@ AQUES_TALK_PATH: Final[Optional[str]] = os.getenv("AQUES_TALK_PATH")
 
 def main() -> None:
     if DISCORD_ACCESS_TOKEN is not None:
-        voice_generator = VoiceGenerator(aques_talk_path=AQUES_TALK_PATH)
-        sql_client = SqlClient(db_name=DB_NAME)
+        voice_generator: AbstractVoiceGenerator = VoiceGenerator(
+            aques_talk_path=AQUES_TALK_PATH
+        )
+        sql_client: AbstractSqlClient = SqlClient(db_name=DB_NAME)
         run(
             token=DISCORD_ACCESS_TOKEN,
             voice_generator_=voice_generator,

@@ -1,10 +1,11 @@
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import discord
 from discord import TextChannel, VoiceClient
 from discord.ext import commands
 
+from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from constants import (
     BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
@@ -12,6 +13,7 @@ from constants import (
     FAREWELL_MESSAGE,
     SUMMON_FAILURE_MESSAGE,
     SUMMON_SUCCESS_MESSAGE,
+    TYPE_USER,
     WELCOME_MESSAGE,
 )
 
@@ -21,8 +23,8 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 voice_clients: Dict[str, Optional[VoiceClient]] = {}
 text_channels: Dict[str, Optional[TextChannel]] = {}
 sound_file_path: str = "./tmp/{}.raw"
-voice_generator: Any = None
-sql_client: Any = None
+voice_generator: AbstractVoiceGenerator
+sql_client: AbstractSqlClient
 
 
 # ボットの起動
@@ -119,7 +121,6 @@ async def disconnect(context) -> None:
 
 @bot.listen()
 async def on_message(context) -> None:
-
     # サーバIDを取得
     server_id: str = context.guild.id
     # ボイスクライアント・テキストチャンネルを取得
@@ -163,8 +164,8 @@ def play_voice(message: str, server_id: str) -> None:
 
 def run(
     token: str,
-    voice_generator_: Any,
-    sql_client_: Any,
+    voice_generator_: AbstractVoiceGenerator,
+    sql_client_: AbstractSqlClient,
     sound_file_path_: str,
 ) -> None:
     global voice_generator

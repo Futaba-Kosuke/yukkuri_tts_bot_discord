@@ -3,11 +3,13 @@ import subprocess
 from dataclasses import dataclass
 from typing import Final, Optional
 
+from abstracts import AbstractVoiceGenerator
+
 URL_PATTERN: Final[str] = r"https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
 
 
 @dataclass
-class AquesTalkGenerator:
+class AquesTalkGenerator(AbstractVoiceGenerator):
     aques_talk_path: Optional[str]
 
     def generate(self, destination_path: str, message: str) -> None:

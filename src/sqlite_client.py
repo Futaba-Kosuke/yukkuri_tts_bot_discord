@@ -2,6 +2,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from sqlite3.dbapi2 import Connection, Cursor
 
+from abstracts import AbstractSqlClient
 from constants import (
     QUERY_CREATE_USER_TABLE,
     QUERY_INSERT_USER,
@@ -12,7 +13,7 @@ from constants import (
 
 
 @dataclass
-class SqliteClient:
+class SqliteClient(AbstractSqlClient):
     db_name: str
     connection: Connection = field(init=False)
     cursor: Cursor = field(init=False)
@@ -47,7 +48,9 @@ class SqliteClient:
         self.cursor.execute(sql, (discord_user_id,))
         return self.cursor.fetchone()
 
-    def update_user_from_discord_user_id(self, discord_user_id: int) -> None:
+    def update_user_from_discord_user_id(
+        self, discord_user_id: int, name: str, voice: str
+    ) -> None:
         sql = self.__sqlite_query(QUERY_UPDATE_USER_FROM_DISCORD_USER_ID)
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, (name, voice, discord_user_id))
         return
