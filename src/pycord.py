@@ -9,6 +9,9 @@ from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from constants import (
     BYE_FAILURE_MESSAGE,
     BYE_SUCCESS_MESSAGE,
+    CHANGE_FAILURE_MESSAGE,
+    CHANGE_SUCCESS_MARISA_MESSAGE,
+    CHANGE_SUCCESS_REIMU_MESSAGE,
     COMMAND_PREFIX,
     FAREWELL_MESSAGE,
     SUMMON_FAILURE_MESSAGE,
@@ -31,6 +34,7 @@ sql_client: AbstractSqlClient
 @bot.event
 async def on_ready():
     print("Hello Yukkuri")
+    return
 
 
 # ボイスチャンネルの状態変更
@@ -62,19 +66,21 @@ async def on_voice_state_update(member, before, after) -> None:
         if before.channel is None:
             message = WELCOME_MESSAGE.format(name)
             await text_channel.send(message)
-            play_voice(message=message, server_id=server_id)
+            await play_voice(message=message, server_id=server_id)
 
         # メンバーの退出時
         if after.channel is None:
             message = FAREWELL_MESSAGE.format(name)
             await text_channel.send(message)
-            play_voice(message=message, server_id=server_id)
+            await play_voice(message=message, server_id=server_id)
 
         # 誰も居なくなった時に自動で退出
         if len(voice_client.channel.voice_states.keys()) == 1:
             await voice_client.disconnect()
             voice_clients[server_id] = None
             text_channels[server_id] = None
+
+    return
 
 
 @bot.command()
@@ -91,7 +97,7 @@ async def connect(context) -> None:
         voice_clients[server_id] = await target_voice_channel.channel.connect()
         text_channels[server_id] = context.channel
         await context.channel.send(SUMMON_SUCCESS_MESSAGE)
-        play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
+        await play_voice(message=SUMMON_SUCCESS_MESSAGE, server_id=server_id)
     # 接続失敗
     else:
         await context.channel.send(SUMMON_FAILURE_MESSAGE)
@@ -119,47 +125,100 @@ async def disconnect(context) -> None:
     return
 
 
+@bot.command()
+async def change(context, voice_type: str) -> None:
+    discord_user_id: int = context.author.id
+    display_name: str = context.author.display_name
+    server_id: str = context.guild.id
+
+    voice: str
+    # 成功
+    if voice_type == "霊夢":
+        await context.channel.send(
+            CHANGE_SUCCESS_REIMU_MESSAGE.format(display_name)
+        )
+        voice = "f1"
+    elif voice_type == "魔理沙":
+        await context.channel.send(
+            CHANGE_SUCCESS_MARISA_MESSAGE.format(display_name)
+        )
+        voice = "f2"
+    # 失敗
+    else:
+        await context.channel.send(CHANGE_FAILURE_MESSAGE)
+        return
+
+    # ユーザをデータベースから検索
+    user: TYPE_USER = sql_client.select_user_from_discord_user_id(
+        discord_user_id
+    )
+
+    # ユーザが存在しない場合
+    if user is None:
+        sql_client.insert_user(
+            discord_user_id=discord_user_id, name=display_name, voice=voice
+        )
+
+    # ユーザが存在する場合
+    else:
+        sql_client.update_user_from_discord_user_id(
+            discord_user_id=discord_user_id, name=display_name, voice=voice
+        )
+
+    if voice_type == "霊夢":
+        await play_voice(
+            message=CHANGE_SUCCESS_REIMU_MESSAGE, server_id=server_id
+        )
+    elif voice_type == "魔理沙":
+        await play_voice(
+            message=CHANGE_SUCCESS_MARISA_MESSAGE, server_id=server_id
+        )
+
+    return
+
+
 @bot.listen()
 async def on_message(context) -> None:
     # サーバIDを取得
     server_id: str = context.guild.id
-    # ボイスクライアント・テキストチャンネルを取得
-    voice_client = voice_clients.get(server_id)
+    # テキストチャンネルを取得
     text_channel = text_channels.get(server_id)
 
     # ボットからのメッセージ, ボイスチャンネルが未定義, コマンドのとき無視
     if (
         context.author.bot
-        or voice_client is None
         or text_channel is None
         or context.content.startswith(COMMAND_PREFIX)
         or text_channel.id != context.channel.id
     ):
         return
 
-    # 再生中の場合、待機
-    while voice_client.is_playing():
-        await asyncio.sleep(1)
-
     message = context.content
-    play_voice(message=message, server_id=server_id)
+    await play_voice(message=message, server_id=server_id)
 
     return
 
 
-def play_voice(message: str, server_id: str) -> None:
-    # ボイスチャンネルが未定義のとき無視
+async def play_voice(message: str, server_id: str) -> None:
+    # ボイスチャンネルを取得
     voice_client = voice_clients.get(server_id)
+    # ボイスチャンネルが未定義のとき無視
     if voice_client is None:
         return
+
+    # 再生中の場合、待機
+    while voice_client.is_playing():
+        await asyncio.sleep(1)
 
     voice_generator.generate(
         destination_path=sound_file_path.format(server_id),
         message=message,
     )
-    voice_client.play(
+    await voice_client.play(
         discord.FFmpegPCMAudio(sound_file_path.format(server_id))
     )
+
+    return
 
 
 def run(
@@ -177,3 +236,5 @@ def run(
     sound_file_path = sound_file_path_
 
     bot.run(token)
+
+    return

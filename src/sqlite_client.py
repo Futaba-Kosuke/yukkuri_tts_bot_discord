@@ -20,7 +20,7 @@ class SqliteClient(AbstractSqlClient):
 
     def __post_init__(self) -> None:
         # データベースにアクセス / データベースの作成
-        self.connection = sqlite3.connect(self.db_name)
+        self.connection = sqlite3.connect(self.db_name, isolation_level=None)
         self.connection.row_factory = self.__dict_factory
         # カーソルオブジェクトを取得
         self.cursor = self.connection.cursor()
