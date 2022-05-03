@@ -48,8 +48,6 @@ async def on_voice_state_update(member, before, after) -> None:
     server_id = member.guild.id
     # 入退室者の名前の取得
     name = member.display_name
-    # ユーザのIDを取得
-    discord_user_id: int = member.id
     # ボイスクライアント・テキストチャンネルを取得
     voice_client = voice_clients.get(server_id)
     text_channel = text_channels.get(server_id)
@@ -72,7 +70,7 @@ async def on_voice_state_update(member, before, after) -> None:
             await play_voice(
                 message=message,
                 server_id=server_id,
-                discord_user_id=discord_user_id,
+                discord_user_id=None,
             )
 
         # メンバーの退出時
@@ -82,9 +80,8 @@ async def on_voice_state_update(member, before, after) -> None:
             await play_voice(
                 message=message,
                 server_id=server_id,
-                discord_user_id=discord_user_id,
+                discord_user_id=None,
             )
-            print(len(voice_client.channel.voice_states.keys()))
 
         # 誰も居なくなった時に自動で退出
         if len(voice_client.channel.voice_states.keys()) == 1:
@@ -101,8 +98,6 @@ async def connect(context) -> None:
 
     # サーバIDを取得
     server_id: str = str(context.guild.id)
-    # ユーザのIDを取得
-    discord_user_id: int = context.author.id
 
     # 呼び出したユーザの参加しているボイスチャンネルを取得
     target_voice_channel = context.author.voice
@@ -114,7 +109,7 @@ async def connect(context) -> None:
         await play_voice(
             message=system_messages["SUMMON_SUCCESS"],
             server_id=server_id,
-            discord_user_id=discord_user_id,
+            discord_user_id=None,
         )
     # 接続失敗
     else:
@@ -192,7 +187,6 @@ async def change(context, voice_name: str) -> None:
 
 @bot.command()
 async def dictionary(context, word: str, reading: str) -> None:
-    discord_user_id: int = context.author.id
     server_id: str = str(context.guild.id)
 
     # 単語辞書をデータベースから検索
@@ -217,7 +211,7 @@ async def dictionary(context, word: str, reading: str) -> None:
     await play_voice(
         message=message,
         server_id=server_id,
-        discord_user_id=discord_user_id,
+        discord_user_id=None,
     )
 
     return
@@ -225,7 +219,6 @@ async def dictionary(context, word: str, reading: str) -> None:
 
 @bot.command()
 async def delete_dictionary(context, word: str) -> None:
-    discord_user_id: int = context.author.id
     server_id: str = str(context.guild.id)
 
     target_dictionary = sql_client.select_dictionary(
@@ -239,7 +232,7 @@ async def delete_dictionary(context, word: str) -> None:
         await play_voice(
             message=message,
             server_id=server_id,
-            discord_user_id=discord_user_id,
+            discord_user_id=None,
         )
         return
 
@@ -251,7 +244,7 @@ async def delete_dictionary(context, word: str) -> None:
     await play_voice(
         message=message,
         server_id=server_id,
-        discord_user_id=discord_user_id,
+        discord_user_id=None,
     )
 
     return
