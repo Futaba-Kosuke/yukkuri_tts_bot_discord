@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from sqlite3.dbapi2 import Connection, Cursor
 
 from abstracts import AbstractSqlClient
-from constants import (
+from commons import (
     QUERY_CREATE_USER_TABLE,
     QUERY_INSERT_USER,
     QUERY_SELECT_USER_FROM_DISCORD_USER_ID,

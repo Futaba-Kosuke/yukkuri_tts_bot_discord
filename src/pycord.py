@@ -1,23 +1,16 @@
 import asyncio
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import discord
 from discord import TextChannel, VoiceClient
 from discord.ext import commands
 
 from abstracts import AbstractSqlClient, AbstractVoiceGenerator
-from constants import (
-    BYE_FAILURE_MESSAGE,
-    BYE_SUCCESS_MESSAGE,
-    CHANGE_FAILURE_MESSAGE,
-    CHANGE_SUCCESS_MARISA_MESSAGE,
-    CHANGE_SUCCESS_REIMU_MESSAGE,
+from commons import (
     COMMAND_PREFIX,
-    FAREWELL_MESSAGE,
-    SUMMON_FAILURE_MESSAGE,
-    SUMMON_SUCCESS_MESSAGE,
+    TYPE_SYSTEM_MESSAGES,
     TYPE_USER,
-    WELCOME_MESSAGE,
+    TYPE_VOICE_CATEGORY,
 )
 
 # ボットの定義
@@ -25,9 +18,16 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 # ボイスチャンネルの保存先
 voice_clients: Dict[str, Optional[VoiceClient]] = {}
 text_channels: Dict[str, Optional[TextChannel]] = {}
-sound_file_path: str = "./tmp/{}.raw"
+# 音声ファイルの出力・入力先
+sound_file_path: str
+# 音声の生成器
 voice_generator: AbstractVoiceGenerator
+# SQL操作器
 sql_client: AbstractSqlClient
+# 声の種類
+voice_categories: List[TYPE_VOICE_CATEGORY]
+# システムメッセージ一覧
+system_messages: TYPE_SYSTEM_MESSAGES
 
 
 # ボットの起動
@@ -66,7 +66,7 @@ async def on_voice_state_update(member, before, after) -> None:
 
         # メンバーの入室時
         if before.channel is None:
-            message = WELCOME_MESSAGE.format(name)
+            message = system_messages["WELCOME"].format(name)
             await text_channel.send(message)
             await play_voice(
                 message=message,
@@ -76,13 +76,14 @@ async def on_voice_state_update(member, before, after) -> None:
 
         # メンバーの退出時
         if after.channel is None:
-            message = FAREWELL_MESSAGE.format(name)
+            message = system_messages["FAREWELL"].format(name)
             await text_channel.send(message)
             await play_voice(
                 message=message,
                 server_id=server_id,
                 discord_user_id=discord_user_id,
             )
+            print(len(voice_client.channel.voice_states.keys()))
 
         # 誰も居なくなった時に自動で退出
         if len(voice_client.channel.voice_states.keys()) == 1:
@@ -108,15 +109,15 @@ async def connect(context) -> None:
     if target_voice_channel is not None:
         voice_clients[server_id] = await target_voice_channel.channel.connect()
         text_channels[server_id] = context.channel
-        await context.channel.send(SUMMON_SUCCESS_MESSAGE)
+        await context.channel.send(system_messages["SUMMON_SUCCESS"])
         await play_voice(
-            message=SUMMON_SUCCESS_MESSAGE,
+            message=system_messages["SUMMON_SUCCESS"],
             server_id=server_id,
             discord_user_id=discord_user_id,
         )
     # 接続失敗
     else:
-        await context.channel.send(SUMMON_FAILURE_MESSAGE)
+        await context.channel.send(system_messages["SUMMON_FAILURE"])
     return
 
 
@@ -131,38 +132,38 @@ async def disconnect(context) -> None:
 
     # 切断
     if voice_client is not None:
-        await context.channel.send(BYE_SUCCESS_MESSAGE)
+        await context.channel.send(system_messages["BYE_SUCCESS"])
         await voice_client.disconnect()
         voice_clients[server_id] = None
         text_channels[server_id] = None
     else:
-        await context.channel.send(BYE_FAILURE_MESSAGE)
+        await context.channel.send(system_messages["BYE_FAILURE"])
 
     return
 
 
 @bot.command()
-async def change(context, voice_type: str) -> None:
+async def change(context, voice_name: str) -> None:
     discord_user_id: int = context.author.id
     display_name: str = context.author.display_name
     server_id: str = context.guild.id
 
-    voice: str
-    # 成功
-    if voice_type == "霊夢":
-        await context.channel.send(
-            CHANGE_SUCCESS_REIMU_MESSAGE.format(display_name)
-        )
-        voice = "f1"
-    elif voice_type == "魔理沙":
-        await context.channel.send(
-            CHANGE_SUCCESS_MARISA_MESSAGE.format(display_name)
-        )
-        voice = "f2"
-    # 失敗
-    else:
-        await context.channel.send(CHANGE_FAILURE_MESSAGE)
+    # 該当する条件の声を取得
+    voice_categories_filtered: List[TYPE_VOICE_CATEGORY] = [
+        voice_category
+        for voice_category in voice_categories
+        if voice_category["name"] == voice_name
+    ]
+    # 声の取得に失敗
+    if len(voice_categories_filtered) == 0:
+        await context.channel.send(system_messages["CHANGE_FAILURE"])
         return
+
+    # 声の取得に成功
+    voice_category: TYPE_VOICE_CATEGORY = voice_categories_filtered[0]
+
+    message: str = voice_category["message"].format(display_name)
+    voice: str = voice_category["voice"]
 
     # ユーザをデータベースから検索
     user: TYPE_USER = sql_client.select_user_from_discord_user_id(
@@ -181,18 +182,12 @@ async def change(context, voice_type: str) -> None:
             discord_user_id=discord_user_id, name=display_name, voice=voice
         )
 
-    if voice_type == "霊夢":
-        await play_voice(
-            message=CHANGE_SUCCESS_REIMU_MESSAGE,
-            server_id=server_id,
-            discord_user_id=discord_user_id,
-        )
-    elif voice_type == "魔理沙":
-        await play_voice(
-            message=CHANGE_SUCCESS_MARISA_MESSAGE,
-            server_id=server_id,
-            discord_user_id=discord_user_id,
-        )
+    await context.channel.send(message)
+    await play_voice(
+        message=message,
+        server_id=server_id,
+        discord_user_id=discord_user_id,
+    )
 
     return
 
@@ -236,11 +231,12 @@ async def play_voice(
     user: TYPE_USER = sql_client.select_user_from_discord_user_id(
         discord_user_id=discord_user_id
     )
-    voice: str
     if user is None:
-        voice = "f1"
-    elif user.get("voice") or not user.get("voice") in ["f1", "f2"]:
-        voice = "f1"
+        voice = voice_categories[0]["voice"]
+    elif user.get("voice") is None or not user.get("voice") in [
+        voice_category["voice"] for voice_category in voice_categories
+    ]:
+        voice = voice_categories[0]["voice"]
     else:
         voice = user["voice"]
 
@@ -255,7 +251,7 @@ async def play_voice(
         voice=voice,
     )
     # 音声を再生
-    await voice_client.play(
+    voice_client.play(
         discord.FFmpegPCMAudio(sound_file_path.format(server_id))
     )
 
@@ -269,10 +265,14 @@ def run(
     sound_file_path_: str,
 ) -> None:
     global voice_generator
+    global voice_categories
+    global system_messages
     global sql_client
     global sound_file_path
 
     voice_generator = voice_generator_
+    voice_categories = voice_generator.get_voice_categories()
+    system_messages = voice_generator.get_system_messages()
     sql_client = sql_client_
     sound_file_path = sound_file_path_
 

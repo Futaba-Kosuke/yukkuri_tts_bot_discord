@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from aques_talk import AquesTalkGenerator as VoiceGenerator
-from constants import DB_NAME
+from commons import DB_NAME
 from pycord import run
 from sqlite_client import SqliteClient as SqlClient
 

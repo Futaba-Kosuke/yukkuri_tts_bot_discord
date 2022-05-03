@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
+from typing import List
 
-from constants import TYPE_USER
+from commons import TYPE_SYSTEM_MESSAGES, TYPE_USER, TYPE_VOICE_CATEGORY
 
 
 class AbstractVoiceGenerator(metaclass=ABCMeta):
@@ -13,6 +14,28 @@ class AbstractVoiceGenerator(metaclass=ABCMeta):
     @abstractmethod
     def preprocess_message(self, message: str) -> str:
         return "message"
+
+    @abstractmethod
+    def get_voice_categories(self) -> List[TYPE_VOICE_CATEGORY]:
+        return [
+            {
+                "voice": "voice",
+                "name": "name",
+                "message": "message",
+            }
+        ]
+
+    @abstractmethod
+    def get_system_messages(self) -> TYPE_SYSTEM_MESSAGES:
+        return {
+            "SUMMON_SUCCESS": "str",
+            "SUMMON_FAILURE": "str",
+            "BYE_SUCCESS": "str",
+            "BYE_FAILURE": "str",
+            "WELCOME": "str",
+            "FAREWELL": "str",
+            "CHANGE_FAILURE": "str",
+        }
 
 
 class AbstractSqlClient(metaclass=ABCMeta):
