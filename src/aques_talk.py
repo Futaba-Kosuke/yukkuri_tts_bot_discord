@@ -17,6 +17,9 @@ MESSAGE_FAREWELL: Final[str] = "{}さん、さようなら。また来てね！"
 MESSAGE_CHANGE_SUCCESS_REIMU: Final[str] = "ゆっくり霊夢よ。{}さんのコメントは私が読み上げさせて貰うわね。"
 MESSAGE_CHANGE_SUCCESS_MARISA: Final[str] = "ゆっくり魔理沙だぜ。{}さんのコメントは私が読み上げさせて貰うぜ。"
 MESSAGE_CHANGE_FAILURE: Final[str] = "読み上げは `霊夢` か `魔理沙` のどちらかに頼んでね！"
+MESSAGE_DICTIONARY_SUCCESS: Final[str] = "それじゃあ、 `{}` は `{}` として読み上げるよ。"
+MESSAGE_DELETE_DICTIONARY_SUCCESS: Final[str] = "`{}` の単語登録を削除したよ。"
+MESSAGE_DELETE_DICTIONARY_FAILURE: Final[str] = "`{}` はまだ単語登録されてないよ。"
 
 VOICE_CATEGORIES: Final[List[TYPE_VOICE_CATEGORY]] = [
     {
@@ -38,6 +41,9 @@ SYSTEM_MESSAGES: Final[TYPE_SYSTEM_MESSAGES] = {
     "WELCOME": MESSAGE_WELCOME,
     "FAREWELL": MESSAGE_FAREWELL,
     "CHANGE_FAILURE": MESSAGE_CHANGE_FAILURE,
+    "DICTIONARY_SUCCESS": MESSAGE_DICTIONARY_SUCCESS,
+    "DELETE_DICTIONARY_SUCCESS": MESSAGE_DELETE_DICTIONARY_SUCCESS,
+    "DELETE_DICTIONARY_FAILURE": MESSAGE_DELETE_DICTIONARY_FAILURE,
 }
 
 
