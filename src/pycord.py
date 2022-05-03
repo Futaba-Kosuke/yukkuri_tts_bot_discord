@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import Dict, List, Optional
 
 import discord
@@ -285,13 +286,15 @@ async def on_message(context) -> None:
 def replace_dictionaries(
     message: str, dictionaries: List[TYPE_DICTIONARY]
 ) -> str:
-    translate_map = str.maketrans(
-        {
-            dictionary["word"]: dictionary["reading"]
-            for dictionary in dictionaries
-        }
+    translate_dict = {
+        dictionary["word"]: dictionary["reading"]
+        for dictionary in dictionaries
+    }
+    return re.sub(
+        "({})".format("|".join(map(re.escape, translate_dict.keys()))),
+        lambda m: translate_dict[m.group()],
+        message,
     )
-    return message.translate(translate_map)
 
 
 async def play_voice(
