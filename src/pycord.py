@@ -46,7 +46,7 @@ async def on_voice_state_update(member, before, after) -> None:
     global text_channels
 
     # サーバIDを取得
-    server_id = member.guild.id
+    server_id = str(member.guild.id)
     # 入退室者の名前の取得
     name = member.display_name
     # ボイスクライアント・テキストチャンネルを取得
