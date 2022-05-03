@@ -13,8 +13,8 @@
 git clone git@github.com:Futaba-Kosuke/fastapi_template.git
 
 # poetry install -v
-#	cp .env.template .env
-#	git config --local core.hooksPath .githooks
+# cp .env.template .env
+# git config --local core.hooksPath .githooks
 make
 
 # Results
