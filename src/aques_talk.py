@@ -12,10 +12,12 @@ URL_PATTERN: Final[str] = r"https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
 class AquesTalkGenerator(AbstractVoiceGenerator):
     aques_talk_path: Optional[str]
 
-    def generate(self, destination_path: str, message: str) -> None:
+    def generate(
+        self, destination_path: str, message: str, voice: str
+    ) -> None:
         message_clean = self.preprocess_message(message=message)
         subprocess.run(
-            f"{self.aques_talk_path} '{message_clean}' > {destination_path}",
+            f"{self.aques_talk_path} -v {voice} '{message_clean}' > {destination_path}",  # noqa: E501
             shell=True,
         )
 

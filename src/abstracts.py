@@ -5,7 +5,9 @@ from constants import TYPE_USER
 
 class AbstractVoiceGenerator(metaclass=ABCMeta):
     @abstractmethod
-    def generate(self, destination_path: str, message: str) -> None:
+    def generate(
+        self, destination_path: str, message: str, voice: str
+    ) -> None:
         return
 
     @abstractmethod
