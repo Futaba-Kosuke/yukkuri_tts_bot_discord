@@ -99,7 +99,7 @@ async def connect(context) -> None:
     global voice_clients
 
     # サーバIDを取得
-    server_id: str = context.guild.id
+    server_id: str = str(context.guild.id)
     # ユーザのIDを取得
     discord_user_id: int = context.author.id
 
@@ -126,7 +126,7 @@ async def disconnect(context) -> None:
     global voice_clients
 
     # サーバIDを取得
-    server_id: str = context.guild.id
+    server_id: str = str(context.guild.id)
     # ボイスクライアント・テキストチャンネルを取得
     voice_client = voice_clients.get(server_id)
 
@@ -146,7 +146,7 @@ async def disconnect(context) -> None:
 async def change(context, voice_name: str) -> None:
     discord_user_id: int = context.author.id
     display_name: str = context.author.display_name
-    server_id: str = context.guild.id
+    server_id: str = str(context.guild.id)
 
     # 該当する条件の声を取得
     voice_categories_filtered: List[TYPE_VOICE_CATEGORY] = [
@@ -195,7 +195,7 @@ async def change(context, voice_name: str) -> None:
 @bot.listen()
 async def on_message(context) -> None:
     # サーバIDを取得
-    server_id: str = context.guild.id
+    server_id: str = str(context.guild.id)
     # テキストチャンネルを取得
     text_channel = text_channels.get(server_id)
     # ユーザのIDを取得
