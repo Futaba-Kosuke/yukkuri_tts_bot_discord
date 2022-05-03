@@ -166,9 +166,7 @@ async def change(context, voice_name: str) -> None:
     voice: str = voice_category["voice"]
 
     # ユーザをデータベースから検索
-    user: TYPE_USER = sql_client.select_user_from_discord_user_id(
-        discord_user_id
-    )
+    user: TYPE_USER = sql_client.select_user(discord_user_id)
 
     # ユーザが存在しない場合
     if user is None:
@@ -178,7 +176,7 @@ async def change(context, voice_name: str) -> None:
 
     # ユーザが存在する場合
     else:
-        sql_client.update_user_from_discord_user_id(
+        sql_client.update_user(
             discord_user_id=discord_user_id, name=display_name, voice=voice
         )
 
@@ -228,9 +226,7 @@ async def play_voice(
         return
 
     # 再生する声の取得
-    user: TYPE_USER = sql_client.select_user_from_discord_user_id(
-        discord_user_id=discord_user_id
-    )
+    user: TYPE_USER = sql_client.select_user(discord_user_id=discord_user_id)
     if user is None:
         voice = voice_categories[0]["voice"]
     elif user.get("voice") is None or not user.get("voice") in [
