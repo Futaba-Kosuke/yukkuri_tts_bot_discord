@@ -227,12 +227,15 @@ async def play_voice(
 
     # 再生する声の取得
     user: TYPE_USER = sql_client.select_user(discord_user_id=discord_user_id)
+    # ユーザのボイスが未登録のとき、デフォルトで再生
     if user is None:
         voice = voice_categories[0]["voice"]
-    elif user.get("voice") is None or not user.get("voice") in [
+    # ユーザに登録可能なボイス以外のボイスが登録されていたとき / 別の音声生成器で登録されたもの
+    elif not user.get("voice") in [
         voice_category["voice"] for voice_category in voice_categories
     ]:
         voice = voice_categories[0]["voice"]
+    # ユーザの登録ボイスが取得できたとき
     else:
         voice = user["voice"]
 
