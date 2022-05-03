@@ -2,10 +2,10 @@ from abc import ABCMeta, abstractmethod
 from typing import List
 
 from commons import (
+    TYPE_DICTIONARY,
     TYPE_SYSTEM_MESSAGES,
     TYPE_USER,
     TYPE_VOICE_CATEGORY,
-    TYPE_WORD,
 )
 
 
@@ -40,6 +40,7 @@ class AbstractVoiceGenerator(metaclass=ABCMeta):
             "WELCOME": "str",
             "FAREWELL": "str",
             "CHANGE_FAILURE": "str",
+            "DICTIONARY_SUCCESS": "str",
         }
 
 
@@ -61,22 +62,37 @@ class AbstractSqlClient(metaclass=ABCMeta):
         return
 
     @abstractmethod
-    def insert_word(
+    def insert_dictionary(
         self, discord_server_id: str, word: str, reading: str
     ) -> None:
         return
 
     @abstractmethod
-    def select_word(self, discord_server_id: str, word: str) -> TYPE_WORD:
+    def select_dictionary(
+        self, discord_server_id: str, word: str
+    ) -> TYPE_DICTIONARY:
         return {
-            "word_id": 0,
+            "dictionary_id": 0,
             "discord_server_id": "discord_server_id",
             "word": "テスト",
             "reading": "てすと",
         }
 
     @abstractmethod
-    def update_word(
+    def select_dictionaries(
+        self, discord_server_id: str
+    ) -> List[TYPE_DICTIONARY]:
+        return [
+            {
+                "dictionary_id": 0,
+                "discord_server_id": "discord_server_id",
+                "word": "テスト",
+                "reading": "てすと",
+            }
+        ]
+
+    @abstractmethod
+    def update_dictionary(
         self, discord_server_id: str, word: str, reading: str
     ) -> None:
         return

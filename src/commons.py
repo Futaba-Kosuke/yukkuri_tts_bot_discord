@@ -27,30 +27,37 @@ QUERY_UPDATE_USER: Final[
 ] = """
 UPDATE users SET name = {0}, voice = {0} WHERE discord_user_id = {0};
 """
-QUERY_CREATE_WORD_TABLE: Final[
+QUERY_CREATE_DICTIONARY_TABLE: Final[
     str
 ] = """
-CREATE TABLE IF NOT EXISTS words (
-    word_id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS dictionaries (
+    dictionary_id INTEGER PRIMARY KEY AUTOINCREMENT,
     discord_server_id VARCHAR,
     word VARCHAR,
     reading VARCHAR
 );
 """
-QUERY_INSERT_WORD: Final[
+QUERY_INSERT_DICTIONARY: Final[
     str
 ] = """
-INSERT INTO words(discord_server_id, word, reading) values({0}, {0}, {0});
+INSERT INTO dictionaries(discord_server_id, word, reading)
+values({0}, {0}, {0});
 """
-QUERY_SELECT_WORD: Final[
+QUERY_SELECT_DICTIONARY: Final[
     str
 ] = """
-SELECT * FROM words WHERE discord_server_id = {0}, word = {0};
+SELECT * FROM dictionaries WHERE discord_server_id = {0} AND word = {0};
 """
-QUERY_UPDATE_WORD: Final[
+QUERY_SELECT_DICTIONARIES: Final[
     str
 ] = """
-UPDATE words SET reading = {0} WHERE discord_server_id = {0}, word = {0};
+SELECT * FROM dictionaries WHERE discord_server_id = {0};
+"""
+QUERY_UPDATE_DICTIONARY: Final[
+    str
+] = """
+UPDATE dictionaries SET reading = {0}
+WHERE discord_server_id = {0} AND word = {0};
 """
 
 TYPE_USER: Final[TypedDict] = TypedDict(
@@ -61,10 +68,10 @@ TYPE_USER: Final[TypedDict] = TypedDict(
         "voice": str,
     },
 )
-TYPE_WORD: Final[TypedDict] = TypedDict(
-    "TYPE_WORD",
+TYPE_DICTIONARY: Final[TypedDict] = TypedDict(
+    "TYPE_DICTIONARY",
     {
-        "word_id": int,
+        "dictionary_id": int,
         "discord_server_id": str,
         "word": str,
         "reading": str,
@@ -88,5 +95,6 @@ TYPE_SYSTEM_MESSAGES: Final[TypedDict] = TypedDict(
         "WELCOME": str,
         "FAREWELL": str,
         "CHANGE_FAILURE": str,
+        "DICTIONARY_SUCCESS": str,
     },
 )

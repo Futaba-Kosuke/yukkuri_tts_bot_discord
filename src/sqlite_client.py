@@ -1,19 +1,21 @@
 import sqlite3
 from dataclasses import dataclass, field
 from sqlite3.dbapi2 import Connection, Cursor
+from typing import List
 
 from abstracts import AbstractSqlClient
 from commons import (
+    QUERY_CREATE_DICTIONARY_TABLE,
     QUERY_CREATE_USER_TABLE,
-    QUERY_CREATE_WORD_TABLE,
+    QUERY_INSERT_DICTIONARY,
     QUERY_INSERT_USER,
-    QUERY_INSERT_WORD,
+    QUERY_SELECT_DICTIONARIES,
+    QUERY_SELECT_DICTIONARY,
     QUERY_SELECT_USER,
-    QUERY_SELECT_WORD,
+    QUERY_UPDATE_DICTIONARY,
     QUERY_UPDATE_USER,
-    QUERY_UPDATE_WORD,
+    TYPE_DICTIONARY,
     TYPE_USER,
-    TYPE_WORD,
 )
 
 
@@ -31,7 +33,7 @@ class SqliteClient(AbstractSqlClient):
         self.cursor = self.connection.cursor()
         # テーブル作成 / テーブルが存在しない場合のみ新規作成
         self.cursor.execute(QUERY_CREATE_USER_TABLE)
-        self.cursor.execute(QUERY_CREATE_WORD_TABLE)
+        self.cursor.execute(QUERY_CREATE_DICTIONARY_TABLE)
 
     # データ取得時にデータを辞書型で返すように修正
     def __dict_factory(self, cursor, row) -> dict:
@@ -62,21 +64,30 @@ class SqliteClient(AbstractSqlClient):
         self.cursor.execute(sql, (name, voice, discord_user_id))
         return
 
-    def insert_word(
+    def insert_dictionary(
         self, discord_server_id: str, word: str, reading: str
     ) -> None:
-        sql = self.__sqlite_query(QUERY_INSERT_WORD)
+        sql = self.__sqlite_query(QUERY_INSERT_DICTIONARY)
         self.cursor.execute(sql, (discord_server_id, word, reading))
         return
 
-    def select_word(self, discord_server_id: str, word: str) -> TYPE_WORD:
-        sql = self.__sqlite_query(QUERY_SELECT_WORD)
+    def select_dictionary(
+        self, discord_server_id: str, word: str
+    ) -> TYPE_DICTIONARY:
+        sql = self.__sqlite_query(QUERY_SELECT_DICTIONARY)
         self.cursor.execute(sql, (discord_server_id, word))
         return self.cursor.fetchone()
 
-    def update_word(
+    def select_dictionaries(
+        self, discord_server_id: str
+    ) -> List[TYPE_DICTIONARY]:
+        sql = self.__sqlite_query(QUERY_SELECT_DICTIONARIES)
+        self.cursor.execute(sql, (discord_server_id,))
+        return self.cursor.fetchall()
+
+    def update_dictionary(
         self, discord_server_id: str, word: str, reading: str
     ) -> None:
-        sql = self.__sqlite_query(QUERY_UPDATE_WORD)
+        sql = self.__sqlite_query(QUERY_UPDATE_DICTIONARY)
         self.cursor.execute(sql, (reading, discord_server_id, word))
         return
