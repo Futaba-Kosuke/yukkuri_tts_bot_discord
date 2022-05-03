@@ -41,6 +41,8 @@ class AbstractVoiceGenerator(metaclass=ABCMeta):
             "FAREWELL": "str",
             "CHANGE_FAILURE": "str",
             "DICTIONARY_SUCCESS": "str",
+            "DELETE_DICTIONARY_SUCCESS": "str",
+            "DELETE_DICTIONARY_FAILURE": "str",
         }
 
 
@@ -95,4 +97,8 @@ class AbstractSqlClient(metaclass=ABCMeta):
     def update_dictionary(
         self, discord_server_id: str, word: str, reading: str
     ) -> None:
+        return
+
+    @abstractmethod
+    def delete_dictionary(self, discord_server_id: str, word: str) -> None:
         return

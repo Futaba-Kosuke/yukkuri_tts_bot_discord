@@ -7,6 +7,7 @@ from abstracts import AbstractSqlClient
 from commons import (
     QUERY_CREATE_DICTIONARY_TABLE,
     QUERY_CREATE_USER_TABLE,
+    QUERY_DELETE_DICTIONARY,
     QUERY_INSERT_DICTIONARY,
     QUERY_INSERT_USER,
     QUERY_SELECT_DICTIONARIES,
@@ -90,4 +91,9 @@ class SqliteClient(AbstractSqlClient):
     ) -> None:
         sql = self.__sqlite_query(QUERY_UPDATE_DICTIONARY)
         self.cursor.execute(sql, (reading, discord_server_id, word))
+        return
+
+    def delete_dictionary(self, discord_server_id: str, word: str) -> None:
+        sql = self.__sqlite_query(QUERY_DELETE_DICTIONARY)
+        self.cursor.execute(sql, (discord_server_id, word))
         return

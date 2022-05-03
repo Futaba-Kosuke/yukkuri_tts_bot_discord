@@ -205,14 +205,48 @@ async def dictionary(context, word: str, reading: str) -> None:
         sql_client.insert_dictionary(
             discord_server_id=server_id, word=word, reading=reading
         )
+        return
 
     # 単語辞書が存在する場合
-    else:
-        sql_client.update_dictionary(
-            discord_server_id=server_id, word=word, reading=reading
-        )
+    sql_client.update_dictionary(
+        discord_server_id=server_id, word=word, reading=reading
+    )
 
     message: str = system_messages["DICTIONARY_SUCCESS"].format(word, reading)
+    await context.channel.send(message)
+    await play_voice(
+        message=message,
+        server_id=server_id,
+        discord_user_id=discord_user_id,
+    )
+
+    return
+
+
+@bot.command()
+async def delete_dictionary(context, word: str) -> None:
+    discord_user_id: int = context.author.id
+    server_id: str = str(context.guild.id)
+
+    target_dictionary = sql_client.select_dictionary(
+        discord_server_id=server_id, word=word
+    )
+
+    # 単語辞書が存在しない場合
+    if target_dictionary is None:
+        message = system_messages["DELETE_DICTIONARY_FAILURE"].format(word)
+        await context.channel.send(message)
+        await play_voice(
+            message=message,
+            server_id=server_id,
+            discord_user_id=discord_user_id,
+        )
+        return
+
+    # 単語辞書が存在する場合
+    sql_client.delete_dictionary(discord_server_id=server_id, word=word)
+
+    message = system_messages["DELETE_DICTIONARY_SUCCESS"].format(word)
     await context.channel.send(message)
     await play_voice(
         message=message,

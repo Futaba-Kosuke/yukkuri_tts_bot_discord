@@ -59,6 +59,11 @@ QUERY_UPDATE_DICTIONARY: Final[
 UPDATE dictionaries SET reading = {0}
 WHERE discord_server_id = {0} AND word = {0};
 """
+QUERY_DELETE_DICTIONARY: Final[
+    str
+] = """
+DELETE FROM dictionaries WHERE discord_server_id = {0} AND word = {0};
+"""
 
 TYPE_USER: Final[TypedDict] = TypedDict(
     "TYPE_USER",
@@ -96,5 +101,7 @@ TYPE_SYSTEM_MESSAGES: Final[TypedDict] = TypedDict(
         "FAREWELL": str,
         "CHANGE_FAILURE": str,
         "DICTIONARY_SUCCESS": str,
+        "DELETE_DICTIONARY_SUCCESS": str,
+        "DELETE_DICTIONARY_FAILURE": str,
     },
 )
