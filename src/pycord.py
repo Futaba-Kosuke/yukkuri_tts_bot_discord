@@ -200,12 +200,12 @@ async def dictionary(context, word: str, reading: str) -> None:
         sql_client.insert_dictionary(
             discord_server_id=server_id, word=word, reading=reading
         )
-        return
 
     # 単語辞書が存在する場合
-    sql_client.update_dictionary(
-        discord_server_id=server_id, word=word, reading=reading
-    )
+    else:
+        sql_client.update_dictionary(
+            discord_server_id=server_id, word=word, reading=reading
+        )
 
     message: str = system_messages["DICTIONARY_SUCCESS"].format(word, reading)
     await context.channel.send(message)
