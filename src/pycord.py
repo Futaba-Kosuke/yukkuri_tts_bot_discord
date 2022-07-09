@@ -264,7 +264,7 @@ async def on_message(context) -> None:
     if (
         context.author.bot
         or text_channel is None
-        or context.content.startswith(COMMAND_PREFIX)
+        or context.clean_content.startswith(COMMAND_PREFIX)
         or text_channel.id != context.channel.id
     ):
         return
@@ -274,7 +274,7 @@ async def on_message(context) -> None:
     )
 
     message = replace_dictionaries(
-        message=context.content, dictionaries=dictionaries
+        message=context.clean_content, dictionaries=dictionaries
     )
     await play_voice(
         message=message, server_id=server_id, discord_user_id=discord_user_id
