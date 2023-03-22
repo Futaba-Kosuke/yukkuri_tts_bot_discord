@@ -1,6 +1,4 @@
-from typing import Final, TypedDict
-
-COMMAND_PREFIX: Final[str] = "!"
+from typing import Final, List, TypedDict
 
 DB_NAME: Final[str] = "database.db"
 QUERY_CREATE_USER_TABLE: Final[

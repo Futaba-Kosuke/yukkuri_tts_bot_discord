@@ -1,5 +1,5 @@
 import os
-from typing import Final, Optional
+from typing import Final, Optional, List
 
 from dotenv import load_dotenv
 
@@ -10,8 +10,11 @@ from pycord import run
 from sqlite_client import SqliteClient as SqlClient
 
 load_dotenv()
+GUILD_IDS_RAW: Optional[str] = os.getenv("GUILD_IDS")
+
 DISCORD_ACCESS_TOKEN: Final[Optional[str]] = os.getenv("DISCORD_ACCESS_TOKEN")
 AQUES_TALK_PATH: Final[Optional[str]] = os.getenv("AQUES_TALK_PATH")
+GUILD_IDS: Final[List[int]] = [int(x) for x in GUILD_IDS_RAW.split(",")] if GUILD_IDS_RAW else []
 
 
 def main() -> None:
@@ -22,6 +25,7 @@ def main() -> None:
         sql_client: AbstractSqlClient = SqlClient(db_name=DB_NAME)
         run(
             token=DISCORD_ACCESS_TOKEN,
+            guild_ids_=GUILD_IDS,
             voice_generator_=voice_generator,
             sql_client_=sql_client,
             sound_file_path_="./tmp/{}.raw",

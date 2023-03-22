@@ -8,7 +8,6 @@ from discord.ext import commands
 
 from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from commons import (
-    COMMAND_PREFIX,
     TYPE_DICTIONARY,
     TYPE_SYSTEM_MESSAGES,
     TYPE_USER,
@@ -16,7 +15,8 @@ from commons import (
 )
 
 # ボットの定義
-bot = commands.Bot(command_prefix=COMMAND_PREFIX)
+intents = discord.Intents.all()
+bot = commands.Bot(intents=intents)
 # ボイスチャンネルの保存先
 voice_clients: Dict[str, Optional[VoiceClient]] = {}
 text_channels: Dict[str, Optional[TextChannel]] = {}
@@ -30,6 +30,8 @@ sql_client: AbstractSqlClient
 voice_categories: List[TYPE_VOICE_CATEGORY]
 # システムメッセージ一覧
 system_messages: TYPE_SYSTEM_MESSAGES
+# 適用サーバ一覧
+guild_ids: List[str]
 
 
 # ボットの起動
@@ -85,7 +87,7 @@ async def on_voice_state_update(member, before, after) -> None:
             )
 
         # 誰も居なくなった時に自動で退出
-        if len(voice_client.channel.voice_states.keys()) == 1:
+        if len(voice_client.channel.voice_states.keys()) == 1:  # type: ignore
             await voice_client.disconnect()
             voice_clients[server_id] = None
             text_channels[server_id] = None
@@ -93,7 +95,7 @@ async def on_voice_state_update(member, before, after) -> None:
     return
 
 
-@bot.command()
+@bot.slash_command(guild_ids=guild_ids)
 async def connect(context) -> None:
     global voice_clients
 
@@ -106,7 +108,7 @@ async def connect(context) -> None:
     if target_voice_channel is not None:
         voice_clients[server_id] = await target_voice_channel.channel.connect()
         text_channels[server_id] = context.channel
-        await context.channel.send(system_messages["SUMMON_SUCCESS"])
+        await context.respond(system_messages["SUMMON_SUCCESS"])
         await play_voice(
             message=system_messages["SUMMON_SUCCESS"],
             server_id=server_id,
@@ -114,11 +116,11 @@ async def connect(context) -> None:
         )
     # 接続失敗
     else:
-        await context.channel.send(system_messages["SUMMON_FAILURE"])
-    return
+        await context.respond(system_messages["SUMMON_FAILURE"])
+    return 
 
 
-@bot.command()
+@bot.slash_command(guild_ids=guild_ids)
 async def disconnect(context) -> None:
     global voice_clients
 
@@ -129,17 +131,17 @@ async def disconnect(context) -> None:
 
     # 切断
     if voice_client is not None:
-        await context.channel.send(system_messages["BYE_SUCCESS"])
+        await context.respond(system_messages["BYE_SUCCESS"])
         await voice_client.disconnect()
         voice_clients[server_id] = None
         text_channels[server_id] = None
     else:
-        await context.channel.send(system_messages["BYE_FAILURE"])
+        await context.respond(system_messages["BYE_FAILURE"])
 
     return
 
 
-@bot.command()
+@bot.slash_command(guild_ids=guild_ids)
 async def change(context, voice_name: str) -> None:
     discord_user_id: int = context.author.id
     display_name: str = context.author.display_name
@@ -153,7 +155,7 @@ async def change(context, voice_name: str) -> None:
     ]
     # 声の取得に失敗
     if len(voice_categories_filtered) == 0:
-        await context.channel.send(system_messages["CHANGE_FAILURE"])
+        await context.respond(system_messages["CHANGE_FAILURE"])
         return
 
     # 声の取得に成功
@@ -176,7 +178,7 @@ async def change(context, voice_name: str) -> None:
         )
 
     message: str = voice_category["message"].format(display_name)
-    await context.channel.send(message)
+    await context.respond(message)
     await play_voice(
         message=message,
         server_id=server_id,
@@ -186,7 +188,7 @@ async def change(context, voice_name: str) -> None:
     return
 
 
-@bot.command()
+@bot.slash_command(guild_ids=guild_ids)
 async def dictionary(context, word: str, reading: str) -> None:
     server_id: str = str(context.guild.id)
 
@@ -208,7 +210,7 @@ async def dictionary(context, word: str, reading: str) -> None:
         )
 
     message: str = system_messages["DICTIONARY_SUCCESS"].format(word, reading)
-    await context.channel.send(message)
+    await context.respond(message)
     await play_voice(
         message=message,
         server_id=server_id,
@@ -218,7 +220,7 @@ async def dictionary(context, word: str, reading: str) -> None:
     return
 
 
-@bot.command()
+@bot.slash_command(guild_ids=guild_ids)
 async def delete_dictionary(context, word: str) -> None:
     server_id: str = str(context.guild.id)
 
@@ -229,7 +231,7 @@ async def delete_dictionary(context, word: str) -> None:
     # 単語辞書が存在しない場合
     if target_dictionary is None:
         message = system_messages["DELETE_DICTIONARY_FAILURE"].format(word)
-        await context.channel.send(message)
+        await context.respond(message)
         await play_voice(
             message=message,
             server_id=server_id,
@@ -241,7 +243,7 @@ async def delete_dictionary(context, word: str) -> None:
     sql_client.delete_dictionary(discord_server_id=server_id, word=word)
 
     message = system_messages["DELETE_DICTIONARY_SUCCESS"].format(word)
-    await context.channel.send(message)
+    await context.respond(message)
     await play_voice(
         message=message,
         server_id=server_id,
@@ -264,7 +266,7 @@ async def on_message(context) -> None:
     if (
         context.author.bot
         or text_channel is None
-        or context.content.startswith(COMMAND_PREFIX)
+        or context.content.startswith("/")
         or text_channel.id != context.channel.id
     ):
         return
@@ -290,11 +292,14 @@ def replace_dictionaries(
         dictionary["word"]: dictionary["reading"]
         for dictionary in dictionaries
     }
-    return re.sub(
-        "({})".format("|".join(map(re.escape, translate_dict.keys()))),
-        lambda m: translate_dict[m.group()],
-        message,
-    )
+    if translate_dict:
+        return re.sub(
+            "({})".format("|".join(map(re.escape, translate_dict.keys()))),
+            lambda m: translate_dict[m.group()],
+            message,
+        )
+    else:
+        return message
 
 
 async def play_voice(
@@ -353,6 +358,7 @@ def get_voice(discord_user_id: Optional[int]) -> str:
 
 def run(
     token: str,
+    guild_ids_: List[str],
     voice_generator_: AbstractVoiceGenerator,
     sql_client_: AbstractSqlClient,
     sound_file_path_: str,
@@ -362,12 +368,14 @@ def run(
     global system_messages
     global sql_client
     global sound_file_path
+    global guild_ids
 
     voice_generator = voice_generator_
     voice_categories = voice_generator.get_voice_categories()
     system_messages = voice_generator.get_system_messages()
     sql_client = sql_client_
     sound_file_path = sound_file_path_
+    guild_ids = guild_ids_
 
     bot.run(token)
 
