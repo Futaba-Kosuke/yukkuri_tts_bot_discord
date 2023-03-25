@@ -1,4 +1,4 @@
-from typing import Final, List, TypedDict
+from typing import Final, TypedDict
 
 DB_NAME: Final[str] = "database.db"
 QUERY_CREATE_USER_TABLE: Final[

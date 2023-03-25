@@ -1,10 +1,12 @@
 import asyncio
+import os
 import re
-from typing import Dict, List, Optional
+from typing import Dict, Final, List, Optional
 
 import discord
 from discord import TextChannel, VoiceClient
 from discord.ext import commands
+from dotenv import load_dotenv
 
 from abstracts import AbstractSqlClient, AbstractVoiceGenerator
 from commons import (
@@ -12,6 +14,13 @@ from commons import (
     TYPE_SYSTEM_MESSAGES,
     TYPE_USER,
     TYPE_VOICE_CATEGORY,
+)
+
+load_dotenv()
+
+GUILD_IDS_RAW: Optional[str] = os.getenv("GUILD_IDS")
+GUILD_IDS: Final[List[int]] = (
+    [int(x) for x in GUILD_IDS_RAW.split(",")] if GUILD_IDS_RAW else []
 )
 
 # ボットの定義
@@ -31,7 +40,7 @@ voice_categories: List[TYPE_VOICE_CATEGORY]
 # システムメッセージ一覧
 system_messages: TYPE_SYSTEM_MESSAGES
 # 適用サーバ一覧
-guild_ids: List[str]
+guild_ids: List[int]
 
 
 # ボットの起動
@@ -95,7 +104,7 @@ async def on_voice_state_update(member, before, after) -> None:
     return
 
 
-@bot.slash_command(guild_ids=guild_ids)
+@bot.slash_command(guild_ids=GUILD_IDS)
 async def connect(context) -> None:
     global voice_clients
 
@@ -117,10 +126,10 @@ async def connect(context) -> None:
     # 接続失敗
     else:
         await context.respond(system_messages["SUMMON_FAILURE"])
-    return 
+    return
 
 
-@bot.slash_command(guild_ids=guild_ids)
+@bot.slash_command(guild_ids=GUILD_IDS)
 async def disconnect(context) -> None:
     global voice_clients
 
@@ -141,7 +150,7 @@ async def disconnect(context) -> None:
     return
 
 
-@bot.slash_command(guild_ids=guild_ids)
+@bot.slash_command(guild_ids=GUILD_IDS)
 async def change(context, voice_name: str) -> None:
     discord_user_id: int = context.author.id
     display_name: str = context.author.display_name
@@ -188,7 +197,7 @@ async def change(context, voice_name: str) -> None:
     return
 
 
-@bot.slash_command(guild_ids=guild_ids)
+@bot.slash_command(guild_ids=GUILD_IDS)
 async def dictionary(context, word: str, reading: str) -> None:
     server_id: str = str(context.guild.id)
 
@@ -220,7 +229,7 @@ async def dictionary(context, word: str, reading: str) -> None:
     return
 
 
-@bot.slash_command(guild_ids=guild_ids)
+@bot.slash_command(guild_ids=GUILD_IDS)
 async def delete_dictionary(context, word: str) -> None:
     server_id: str = str(context.guild.id)
 
@@ -358,7 +367,6 @@ def get_voice(discord_user_id: Optional[int]) -> str:
 
 def run(
     token: str,
-    guild_ids_: List[str],
     voice_generator_: AbstractVoiceGenerator,
     sql_client_: AbstractSqlClient,
     sound_file_path_: str,
@@ -368,14 +376,12 @@ def run(
     global system_messages
     global sql_client
     global sound_file_path
-    global guild_ids
 
     voice_generator = voice_generator_
     voice_categories = voice_generator.get_voice_categories()
     system_messages = voice_generator.get_system_messages()
     sql_client = sql_client_
     sound_file_path = sound_file_path_
-    guild_ids = guild_ids_
 
     bot.run(token)
 
