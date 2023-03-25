@@ -278,6 +278,7 @@ async def on_message(context) -> None:
         or context.content.startswith("/")
         or text_channel.id != context.channel.id
     ):
+        await bot.process_commands(context)
         return
 
     dictionaries: List[TYPE_DICTIONARY] = sql_client.select_dictionaries(
@@ -291,6 +292,7 @@ async def on_message(context) -> None:
         message=message, server_id=server_id, discord_user_id=discord_user_id
     )
 
+    await bot.process_commands(context)
     return
 
 
