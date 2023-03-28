@@ -286,7 +286,7 @@ async def on_message(context) -> None:
     )
 
     message = replace_dictionaries(
-        message=context.content, dictionaries=dictionaries
+        message=context.clean_content, dictionaries=dictionaries
     )
     await play_voice(
         message=message, server_id=server_id, discord_user_id=discord_user_id
