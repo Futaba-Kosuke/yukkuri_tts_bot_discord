@@ -10,6 +10,7 @@ from pycord import run
 from sqlite_client import SqliteClient as SqlClient
 
 load_dotenv()
+
 DISCORD_ACCESS_TOKEN: Final[Optional[str]] = os.getenv("DISCORD_ACCESS_TOKEN")
 AQUES_TALK_PATH: Final[Optional[str]] = os.getenv("AQUES_TALK_PATH")
 
