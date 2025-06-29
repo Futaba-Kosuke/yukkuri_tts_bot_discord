@@ -18,6 +18,10 @@ from commons import (
 
 load_dotenv()
 
+# 音声再生に必要なOPUSの読み込み
+OPUS_PATH: Optional[str] = os.getenv("OPUS_PATH")
+discord.opus.load_opus(OPUS_PATH)
+
 GUILD_IDS_RAW: Optional[str] = os.getenv("GUILD_IDS")
 GUILD_IDS: Final[List[int]] = (
     [int(x) for x in GUILD_IDS_RAW.split(",")] if GUILD_IDS_RAW else []
