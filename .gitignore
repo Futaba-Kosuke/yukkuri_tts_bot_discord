@@ -21,3 +21,5 @@ tmp/
 
 # database file
 database.db
+
+poetry.lock
