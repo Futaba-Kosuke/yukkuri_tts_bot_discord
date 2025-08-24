@@ -3,12 +3,42 @@
 ## Installation
 
 ### 1. 前提環境の構築
+
+1. 使用するコマンド
+
 以下のコマンドが使用できるようにしておいてください。
 - `make`: コマンドの実行用
 - `poetry`: 環境の構築用
 
+2. `opus`, `ffmpeg`のインストール
+
+```sh
+sudo apt update
+sudo apt install -y libopus0 libopus-dev ffmpeg
+
+# Tips: opusはraspberry pi osの場合、/usr/lib/aarch64-linux-gnu/libopus.soに配置されている
+```
+
+3. `aquestalkpi`のインストール
+
+```sh
+# 作業ディレクトリに移動
+mkdir ~/bot
+
+# 必要ファイルのダウンロード
+wget https://www.a-quest.com/archive/package/aquestalkpi-20220207.tgz -O aquestalkpi.tgz
+zcat aquestalkpi.tgz | tar xv
+
+# 64bit版を適用
+cd aquestalkpi
+mv AquesTalkPi AquesTalkPi32
+cp bin64/AquesTalkPi AquesTalkPi
+```
+
 ### 2. 開発環境の構築
 ```sh
+cd ~/bot
+
 # クローン
 git clone git@github.com:Futaba-Kosuke/fastapi_template.git
 
