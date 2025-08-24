@@ -54,7 +54,36 @@ git config --local core.hooksPath .githooks
 make env
 ```
 
-### 3. 開発時の補足
+### 3. 自動起動の設定
+
+1. `/etc/systemd/system/xxx.service`に以下を書き込む
+
+```
+[Unit]
+Description=Run make run in myproject folder
+After=network.target
+
+[Service]
+Environment="PATH=/home/{USER_NAME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Type=simple
+WorkingDirectory=/home/{USER_NAME}/bot/yukkuri_tts_bot_discord
+ExecStart=/usr/bin/make run
+User={USER_NAME}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+2. 以下を実行する
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable xxx.service
+sudo systemctl start xxx.service
+```
+
+### 4. 開発時の補足
 開発時には仮想環境に入った状態で開発することを強く推奨します。
 ```sh
 # 仮想環境に入る
@@ -75,5 +104,5 @@ make lint
 | flake8 | PEP8スタイル、論理エラー、複雑度のチェック |
 | mypy | 型チェック |
 
-### 4. ディレクトリ構成
+### 5. ディレクトリ構成
 > 参考: https://docs.python-guide.org/writing/structure/

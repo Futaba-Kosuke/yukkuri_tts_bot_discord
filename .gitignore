@@ -12,3 +12,8 @@ __pycache__/
 # editor
 .idea/
 .vscode/
+
+# other
+.env
+tmp/
+database.db
